@@ -8,24 +8,24 @@ using System.Windows.Controls;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-namespace SmoothScroll
+namespace PrecisionScroll
 {
-    internal sealed class SmoothScrollMouseProcessor : MouseProcessorBase
+    internal sealed class PrecisionScrollMouseProcessor : MouseProcessorBase
     {
         private const int WM_MOUSEHWHEEL = 0x020E;
 
         [DllImport("user32.dll", SetLastError = false)]
         public static extern IntPtr GetMessageExtraInfo();
 
-        private bool Enabled => SmoothScrollPackage.OptionsPage?.Enabled ?? true;
-        private double HorizontalSensitivity => SmoothScrollPackage.OptionsPage?.HorizontalSensitivity ?? 1.0;
-        private double VerticalSensitivity => SmoothScrollPackage.OptionsPage?.VerticalSensitivity ?? 1.0;
+        private bool Enabled => PrecisionScrollPackage.OptionsPage?.Enabled ?? true;
+        private double HorizontalSensitivity => PrecisionScrollPackage.OptionsPage?.HorizontalSensitivity ?? 1.0;
+        private double VerticalSensitivity => PrecisionScrollPackage.OptionsPage?.VerticalSensitivity ?? 1.0;
 
         private readonly IWpfTextView wpfTextView;
         private double accumulatedOffset;
         private ScrollDirection accumulatedOffsetDirection;
 
-        internal SmoothScrollMouseProcessor(IWpfTextView _wpfTextView)
+        internal PrecisionScrollMouseProcessor(IWpfTextView _wpfTextView)
         {
             this.wpfTextView = _wpfTextView;
             ((ContentControl)wpfTextView).Loaded += View_Loaded;

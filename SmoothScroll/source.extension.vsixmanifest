@@ -1,10 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="C3E3372B-022D-4E19-BD83-EEDD6FA01E5C" Version="2.8.1" Language="en-US" Publisher="Lkytal" />
-        <DisplayName>Smooth Scroll</DisplayName>
-        <Description xml:space="preserve">Smooth Scroll for VS2013, VS2015 and VS2017</Description>
-        <MoreInfo>https://github.com/lkytal/SmoothScroll</MoreInfo>
+        <Identity Id="86AEF3D9-AB16-4498-B024-6F5A597A55C8" Version="3.0.0" Language="en-US" Publisher="AHolkner" />
+        <DisplayName>Precision Scroll</DisplayName>
+        <Description xml:space="preserve">Precision Scroll for VS2013, VS2015 and VS2017</Description>
         <License>Resources\LICENSE.txt</License>
         <Icon>Resources\icon.png</Icon>
     </Metadata>
@@ -17,7 +16,7 @@
         <Dependency Id="Microsoft.VisualStudio.MPF.12.0" DisplayName="Visual Studio MPF 12.0" d:Source="Installed" Version="[12.0, 16.0)" />
     </Dependencies>
     <Assets>
-        <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|%CurrentProject%|" d:Source="Project" d:ProjectName="%CurrentProject%" d:VsixSubPath="SmoothScroll.dll" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|%CurrentProject%|" d:Source="Project" d:ProjectName="%CurrentProject%" d:VsixSubPath="PrecisionScroll.dll" />
     </Assets>
     <Prerequisites>
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[12.0,16.0)" DisplayName="Visual Studio 核心编辑器" />

@@ -5,17 +5,17 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Text;
 
-namespace SmoothScroll
+namespace PrecisionScroll
 {
 	[Export(typeof(IMouseProcessorProvider))]
 	[ContentType("text")]
 	[TextViewRole(PredefinedTextViewRoles.Interactive)]
 	[Name("Smooth Scroll Mouse Processor")]
-	internal sealed class SmoothScrollMouseProcessorProvider : IMouseProcessorProvider
+	internal sealed class PrecisionScrollMouseProcessorProvider : IMouseProcessorProvider
 	{
 		IMouseProcessor IMouseProcessorProvider.GetAssociatedProcessor(IWpfTextView wpfTextView)
 		{
-			return new SmoothScrollMouseProcessor(wpfTextView);
+			return new PrecisionScrollMouseProcessor(wpfTextView);
 		}
 	}
 }

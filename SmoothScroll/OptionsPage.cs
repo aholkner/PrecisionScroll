@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.Shell;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace SmoothScroll
+namespace PrecisionScroll
 {
     [ClassInterface(ClassInterfaceType.AutoDual)]
 	public class OptionsPage : DialogPage
