@@ -1,84 +1,108 @@
-﻿using System.Diagnostics;
-using Microsoft.VisualStudio.Text.Editor;
+﻿using Microsoft.VisualStudio.Text.Editor;
 using System.Windows.Input;
-using System.Windows.Threading;
-using ScrollShared;
+using static System.Math;
+using System.Windows;
+using System.Windows.Interop;
+using System;
+using System.Windows.Controls;
+using System.Runtime.InteropServices;
 
 namespace SmoothScroll
 {
 	internal sealed class SmoothScrollMouseProcessor : MouseProcessorBase
 	{
-		private readonly IWpfTextView wpfTextView;
+        private const int WM_MOUSEHWHEEL = 0x020E;
+
+        [DllImport("user32.dll", SetLastError = false)]
+        public static extern IntPtr GetMessageExtraInfo();
+
+        private readonly IWpfTextView wpfTextView;
 
 		private bool ExtEnable => SmoothScrollPackage.OptionsPage?.ExtEnable ?? true;
-		private bool ShiftEnable => SmoothScrollPackage.OptionsPage?.ShiftEnable ?? true;
-		private bool AltEnable => SmoothScrollPackage.OptionsPage?.AltEnable ?? true;
-		private bool SmoothEnable => SmoothScrollPackage.OptionsPage?.SmoothEnable ?? true;
-		private double DistanceRatio => SmoothScrollPackage.OptionsPage?.DistanceRatio ?? 1.1;
-		private ScrollingSpeeds SpeedLever => SmoothScrollPackage.OptionsPage?.DurationRatio ?? ScrollingSpeeds.Normal;
-
-		private readonly ScrollController verticalController, horizontalController;
+		
+        private double accumulatedOffset;
+        private ScrollDirection accumulatedOffsetDirection;
 
 		internal SmoothScrollMouseProcessor(IWpfTextView _wpfTextView)
 		{
 			this.wpfTextView = _wpfTextView;
-			var pageScroller = new PageScroller(Dispatcher.CurrentDispatcher, wpfTextView);
-			verticalController = new ScrollController(pageScroller, ScrollingDirection.Vertical);
-			horizontalController = new ScrollController(pageScroller, ScrollingDirection.Horizental);
-		}
+            ((ContentControl)wpfTextView).Loaded += View_Loaded;
+        }
 
-		public override void PreprocessMouseWheel(MouseWheelEventArgs e)
+        private void View_Loaded(object sender, RoutedEventArgs e)
+        {
+            var source = PresentationSource.FromVisual(wpfTextView.VisualElement);
+            ((HwndSource)source)?.AddHook(Hook);
+        }
+
+        /// <summary>
+        /// Determines what input device triggered the mouse event.
+        /// </summary>
+        /// <returns>
+        /// A result indicating whether the last mouse event was triggered
+        /// by a touch, pen or the mouse.
+        /// </returns>
+        private static bool IsMouseEvent()
+        {
+            var extra = (uint)GetMessageExtraInfo();
+            bool isTouchOrPen = (extra & 0xFFFFFF00) == 0xFF515700;
+            return !isTouchOrPen;
+        }
+
+        /// <summary>
+        /// Gets high bits values of the pointer.
+        /// </summary>
+        private static int HIWORD(IntPtr ptr)
+        {
+            var val32 = ptr.ToInt32();
+            return ((val32 >> 16) & 0xFFFF);
+        }
+
+        /// <summary>
+        /// Gets low bits values of the pointer.
+        /// </summary>
+        private static int LOWORD(IntPtr ptr)
+        {
+            var val32 = ptr.ToInt32();
+            return (val32 & 0xFFFF);
+        }
+
+        private IntPtr Hook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            switch (msg)
+            {
+                case WM_MOUSEHWHEEL:
+                    int delta = (short)HIWORD(wParam);
+                    wpfTextView.ViewScroller.ScrollViewportHorizontallyByPixels(delta);
+                    return (IntPtr)1;
+            }
+            return IntPtr.Zero;
+        }
+
+        public override void PreprocessMouseWheel(MouseWheelEventArgs e)
 		{
-			if (!ExtEnable || Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            if (!IsMouseEvent())
+                return;
+
+            if (!ExtEnable || Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
 			{
 				return;
 			}
 
-			if (AltEnable && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt)))
-			{
-				wpfTextView.ViewScroller.ScrollViewportVerticallyByPage(e.Delta < 0 ? ScrollDirection.Down : ScrollDirection.Up);
+            var direction = e.Delta < 0 ? ScrollDirection.Down : ScrollDirection.Up;
+            
+            // Reset accumulated offset if scroll direction has changed
+            if (accumulatedOffsetDirection != direction)
+            {
+                accumulatedOffset = 0;
+                accumulatedOffsetDirection = direction;
+            }
 
-				e.Handled = true;
-				return;
-			}
-
-			if (ShiftEnable && (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)))
-			{
-				PostScrollRequest(-e.Delta, ScrollingDirection.Horizental);
-
-				e.Handled = true;
-				return;
-			}
-
-			if (SmoothEnable)
-			{
-				if (!NativeMethods.IsMouseEvent())
-				{
-					Trace.WriteLine("Touch");
-					return;
-				}
-
-				PostScrollRequest(e.Delta, ScrollingDirection.Vertical);
-				e.Handled = true;
-			}
-		}
-
-		public override void PostprocessMouseDown(MouseButtonEventArgs e)
-		{
-			verticalController.StopScroll();
-			horizontalController.StopScroll();
-		}
-
-		private void PostScrollRequest(double distance, ScrollingDirection direction)
-		{
-			if (direction == ScrollingDirection.Vertical)
-			{
-				verticalController.ScrollView(distance * DistanceRatio, SpeedLever);
-			}
-			else
-			{
-				horizontalController.ScrollView(distance * DistanceRatio, SpeedLever);
-			}
+            accumulatedOffset += Abs(e.Delta) / 120.0;
+            int lines = (int)Floor(accumulatedOffset);
+            if (lines > 0)
+                wpfTextView.ViewScroller.ScrollViewportVerticallyByLines(direction, lines);
+            e.Handled = true;
 		}
 	}
 }
