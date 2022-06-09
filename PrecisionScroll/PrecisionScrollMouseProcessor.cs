@@ -80,9 +80,10 @@ namespace PrecisionScroll
             }
 
             accumulatedOffset += Abs(e.Delta) / 120.0 * VerticalSensitivity;
-            int lines = (int)Floor(accumulatedOffset);
-            if (lines > 0)
-                wpfTextView.ViewScroller.ScrollViewportVerticallyByLines(direction, lines);
+            //int lines = (int)Floor(accumulatedOffset);
+            //if (lines > 0)
+            //    wpfTextView.ViewScroller.ScrollViewportVerticallyByLines(direction, lines);
+            wpfTextView.ViewScroller.ScrollViewportVerticallyByPixels(e.Delta * VerticalSensitivity);
             e.Handled = true;
         }
     }
